@@ -2,6 +2,7 @@
 using AspectInjector.Core.Extensions;
 using AspectInjector.Core.Models;
 using FluentIL;
+using FluentIL.Cuts;
 using FluentIL.Logging;
 using Mono.Cecil;
 

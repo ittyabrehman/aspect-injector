@@ -10,6 +10,7 @@ using Mono.Cecil.Rocks;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using FluentIL.Cuts;
 
 namespace AspectInjector.Core.Advice.Weavers.Processes
 {

@@ -1,4 +1,4 @@
 [submodule "external/FluentIL"]
 	path = external/FluentIL
-	url = https://github.com/pamidur/fluent-il
+	url = git@github.com:pamidur/fluent-il.git
 	branch = master

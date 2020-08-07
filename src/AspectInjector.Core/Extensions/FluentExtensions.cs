@@ -7,6 +7,7 @@ using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
 using System;
 using System.Linq;
+using FluentIL.Cuts;
 
 namespace AspectInjector.Core.Extensions
 {

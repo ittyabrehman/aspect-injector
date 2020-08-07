@@ -5,6 +5,7 @@ using FluentIL;
 using FluentIL.Logging;
 using Mono.Cecil;
 using System.Linq;
+using FluentIL.Cuts;
 
 namespace AspectInjector.Core.Services
 {

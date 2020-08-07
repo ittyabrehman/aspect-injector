@@ -49,6 +49,7 @@ namespace AspectInjector
                 }
             }
 
+            
             return ShowHelp();
         }
 
@@ -102,7 +103,7 @@ namespace AspectInjector
             Console.WriteLine($"   -v\tVerbose log.");
             Console.WriteLine($"   -rf\tPath to file with list of references. New line separated.");
             Console.WriteLine();
-
+            System.Console.ReadKey();
             return -1;
         }
     }

@@ -8,6 +8,7 @@ using Mono.Cecil;
 using Mono.Cecil.Cil;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using FluentIL.Cuts;
 
 namespace AspectInjector.Core.Advice.Weavers.Processes
 {
