@@ -2,87 +2,85 @@
 using AspectInjector.Core.Extensions;
 using AspectInjector.Core.Models;
 using FluentIL;
+using FluentIL.Cuts;
 using FluentIL.Extensions;
 using FluentIL.Logging;
 using Mono.Cecil;
 using Mono.Cecil.Rocks;
 using System;
 using System.Linq;
-using FluentIL.Cuts;
 
 namespace AspectInjector.Core.Advice.Weavers.Processes
 {
     internal abstract class AfterStateMachineWeaveProcessBase : AdviceWeaveProcessBase<AfterAdviceEffect>
     {
-        protected TypeDefinition _stateMachine;
-        protected TypeReference _stateMachineRef;
+        protected TypeDefinition StateMachine;
+        protected TypeReference StateMachineRef;
 
         private readonly Func<FieldReference> _originalThis;
 
         protected AfterStateMachineWeaveProcessBase(ILogger log, MethodDefinition target, InjectionDefinition injection) : base(log, target, injection)
         {
-            _originalThis = _method.IsStatic ? (Func<FieldReference>)null : () => GetThisField();
+            _originalThis = _method.IsStatic ? (Func<FieldReference>)null : GetThisField;
         }
 
         protected void SetStateMachine(TypeReference stateMachineRef)
         {
-            _stateMachineRef = stateMachineRef;
-            _stateMachine = _stateMachineRef.Resolve();
+            StateMachineRef = stateMachineRef;
+            StateMachine = StateMachineRef.Resolve();
         }
 
         private FieldReference GetThisField()
         {
-            var thisfield = _stateMachine.Fields
+            var thisField = StateMachine.Fields
                 .FirstOrDefault(f => f.Name == Constants.MovedThis);
 
-            if (thisfield == null)
+            if (thisField != null) return thisField.MakeReference(StateMachine.MakeSelfReference());
+            TypeReference origTypeRef = _type;
+            if (origTypeRef.HasGenericParameters)
             {
-                TypeReference _origTypeRef = _type;
-                if (_origTypeRef.HasGenericParameters)
-                    _origTypeRef = _origTypeRef.MakeGenericInstanceType(_stateMachine.GenericParameters.Take(_type.GenericParameters.Count).ToArray());
-
-                thisfield = new FieldDefinition(Constants.MovedThis, FieldAttributes.Public, _origTypeRef);
-                _stateMachine.Fields.Add(thisfield);
-
-                InsertStateMachineCall(
-                    e => e
-                    .Store(thisfield.MakeReference(_stateMachineRef), v => v.This())
-                    );
+                origTypeRef = origTypeRef.MakeGenericInstanceType((StateMachine?.GenericParameters?.Take(_type.GenericParameters.Count))?.ToArray());
             }
 
-            return thisfield.MakeReference(_stateMachine.MakeSelfReference());
+            thisField = new FieldDefinition(Constants.MovedThis, FieldAttributes.Public, origTypeRef);
+            StateMachine.Fields.Add(thisField);
+
+            InsertStateMachineCall(
+                e => e
+                    .Store(thisField.MakeReference(StateMachineRef), v => v.This())
+            );
+
+            return thisField.MakeReference(StateMachine.MakeSelfReference());
         }
 
         private FieldReference GetArgsField()
         {
-            var argsfield = _stateMachine.Fields
+            var garfield = StateMachine.Fields
                 .FirstOrDefault(f => f.Name == Constants.MovedArgs);
 
-            if (argsfield == null)
-            {
-                argsfield = new FieldDefinition(Constants.MovedArgs, FieldAttributes.Public, _stateMachine.Module.ImportReference(StandardTypes.ObjectArray));
-                _stateMachine.Fields.Add(argsfield);
+            if (garfield != null) return garfield.MakeReference(StateMachine.MakeSelfReference());
+            garfield = new FieldDefinition(Constants.MovedArgs, FieldAttributes.Public, StateMachine.Module.ImportReference(StandardTypes.ObjectArray));
+            StateMachine.Fields.Add(garfield);
 
-                InsertStateMachineCall(
-                    e => e
-                    .Store(argsfield.MakeReference(_stateMachineRef), v =>
+            InsertStateMachineCall(
+                e => e
+                    .Store(garfield.MakeReference(StateMachineRef), v =>
                     {
                         var elements = _method.Parameters.Select<ParameterDefinition, PointCut>(p => il =>
-                               il.Load(p).Cast(p.ParameterType, StandardTypes.Object)
-                           ).ToArray();
+                            il.Load(p).Cast(p.ParameterType, StandardTypes.Object)
+                        ).ToArray();
 
                         return v.CreateArray(StandardTypes.Object, elements);
                     }));
-            }
 
-            return argsfield.MakeReference(_stateMachine.MakeSelfReference());
+            return garfield.MakeReference(StateMachine.MakeSelfReference());
         }
 
         protected abstract void InsertStateMachineCall(PointCut code);
 
         public override void Execute()
         {
-            if (_stateMachineRef == null)
+            if (StateMachineRef == null)
                 throw new InvalidOperationException("State machine is not set");
 
             FindOrCreateAfterStateMachineMethod().Body.BeforeExit(
@@ -99,10 +97,7 @@ namespace AspectInjector.Core.Advice.Weavers.Processes
 
         protected override Cut LoadInstanceArgument(Cut pc, AdviceArgument parameter)
         {
-            if (_originalThis != null)
-                return LoadOriginalThis(pc);
-            else
-                return pc.Value(null);
+            return _originalThis != null ? LoadOriginalThis(pc) : pc.Value(null);
         }
 
         protected override Cut LoadArgumentsArgument(Cut pc, AdviceArgument parameter)

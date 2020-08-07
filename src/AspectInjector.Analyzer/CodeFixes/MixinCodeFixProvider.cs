@@ -15,10 +15,7 @@ namespace AspectInjector.Analyzer.CodeFixes
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(MixinCodeFixProvider)), Shared]
     public class MixinCodeFixProvider : CodeFixProvider
     {
-        public sealed override ImmutableArray<string> FixableDiagnosticIds
-        {
-            get { return ImmutableArray.Create(EffectRules.MixinSupportsOnlyAspectInterfaces.Id); }
-        }
+        public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(EffectRules.MixinSupportsOnlyAspectInterfaces.Id);
 
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {

@@ -1,4 +1,5 @@
 ﻿using AspectInjector.Tests.Assets;
+using AspectInjector.Tests.RuntimeAssets;
 
 namespace AspectInjector.Tests.Runtime.Around
 {

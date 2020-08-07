@@ -20,21 +20,21 @@ namespace AspectInjector.Analyzer
 
     public static class RoslynExtensions
     {
-        public static SyntaxNode WithUpdatedUsings(this SyntaxNode node, UsingDirectiveSyntax[] usings)
+        public static SyntaxNode WithUpdatedUsing(this SyntaxNode node, UsingDirectiveSyntax[] usings)
         {
             usings = usings.Where(u => u != null).Distinct(UsingComparer.Instance).ToArray();
             if (!usings.Any())
                 return node;
 
-            var existingUsings = node.DescendantNodes(s => s is NamespaceDeclarationSyntax || s is CompilationUnitSyntax).OfType<UsingDirectiveSyntax>().ToArray();
-            if (existingUsings.Length == 0)
+            var existingUsing = node.DescendantNodes(s => s is NamespaceDeclarationSyntax || s is CompilationUnitSyntax).OfType<UsingDirectiveSyntax>().ToArray();
+            if (existingUsing.Length == 0)
             {
                 node = node.InsertNodesBefore(node.ChildNodes().First(), List(usings));
             }
             else
             {
-                var newUsings = usings.Except(existingUsings, UsingComparer.Instance);
-                node = node.InsertNodesAfter(existingUsings.Last(), List(newUsings));
+                var newUsing = usings.Except(existingUsing, UsingComparer.Instance);
+                node = node.InsertNodesAfter(existingUsing.Last(), List(newUsing));
             }
 
             return node;
@@ -59,15 +59,13 @@ namespace AspectInjector.Analyzer
 
         public static AttributeData GetAspectAttribute(this ISymbol symbol)
         {
-            if (symbol == null) return null;
-            var attr = symbol.GetAttributes().FirstOrDefault(a => a.AttributeClass.ToDisplayString() == WellKnown.AspectType);
+            var attr = symbol?.GetAttributes().FirstOrDefault(a => a.AttributeClass.ToDisplayString() == WellKnown.AspectType);
             return attr;
         }
 
         public static AttributeData GetAdviceAttribute(this ISymbol method)
         {
-            if (method == null) return null;
-            var attr = method.GetAttributes().FirstOrDefault(a => a.AttributeClass.ToDisplayString() == WellKnown.AdviceType);
+            var attr = method?.GetAttributes().FirstOrDefault(a => a.AttributeClass.ToDisplayString() == WellKnown.AdviceType);
             return attr;
         }
 

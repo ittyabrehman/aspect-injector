@@ -90,7 +90,7 @@ namespace AspectInjector.Analyzer.Refactorings
             var newMethod = method.WithParameterList(method.ParameterList.AddParameters(parameter.ParameterSyntax)/*.WithAdditionalAnnotations(Formatter.Annotation)*/);
 
             root = root.ReplaceNode(method, newMethod);
-            root = root.WithUpdatedUsings(new[] { parameter.UsingSyntax });           
+            root = root.WithUpdatedUsing(new[] { parameter.UsingSyntax });           
 
             return context.Document.WithSyntaxRoot(root);
         }

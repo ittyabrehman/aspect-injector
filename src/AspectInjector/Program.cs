@@ -10,7 +10,7 @@ namespace AspectInjector
 {
     internal static class Program
     {
-        private static bool _headerPrinted = false;
+        private static bool _headerPrinted;
         private static int Main(string[] args)
         {
             if (args.Length == 0)
@@ -18,9 +18,8 @@ namespace AspectInjector
 
             var optimize = false;
             var verbose = false;
-            List<string> references = new List<string>();
-
-            for (int i = 0; i < args.Length; i++)
+            var references = new List<string>();
+            for (var i = 0; i < args.Length; i++)
             {
                 var arg = args[i];
                 switch (arg)
@@ -38,9 +37,9 @@ namespace AspectInjector
                         ShowVerboseHeader();
                         continue;
                     case "-rf":
-                        var reflist = args[++i];
-                        if (File.Exists(reflist))
-                            references.AddRange(File.ReadAllLines(reflist, Encoding.UTF8));
+                        var refList = args[++i];
+                        if (File.Exists(refList))
+                            references.AddRange(File.ReadAllLines(refList, Encoding.UTF8));
                         else return ShowHelp();
                         continue;
                     default:
@@ -49,7 +48,7 @@ namespace AspectInjector
                 }
             }
 
-            
+
             return ShowHelp();
         }
 
@@ -103,7 +102,7 @@ namespace AspectInjector
             Console.WriteLine($"   -v\tVerbose log.");
             Console.WriteLine($"   -rf\tPath to file with list of references. New line separated.");
             Console.WriteLine();
-            System.Console.ReadKey();
+            Console.ReadKey();
             return -1;
         }
     }

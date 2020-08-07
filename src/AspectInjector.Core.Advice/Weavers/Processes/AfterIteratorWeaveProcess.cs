@@ -39,14 +39,14 @@ namespace AspectInjector.Core.Advice.Weavers.Processes
 
         protected override MethodDefinition FindOrCreateAfterStateMachineMethod()
         {
-            var afterMethod = _stateMachine.Methods.FirstOrDefault(m => m.Name == Constants.AfterStateMachineMethodName);
+            var afterMethod = StateMachine.Methods.FirstOrDefault(m => m.Name == Constants.AfterStateMachineMethodName);
 
             if (afterMethod == null)
             {
-                var moveNext = _stateMachine.Methods.First(m => m.Name == "MoveNext");
+                var moveNext = StateMachine.Methods.First(m => m.Name == "MoveNext");
 
-                afterMethod = new MethodDefinition(Constants.AfterStateMachineMethodName, MethodAttributes.Private, _stateMachine.Module.ImportReference(StandardTypes.Void));
-                _stateMachine.Methods.Add(afterMethod);
+                afterMethod = new MethodDefinition(Constants.AfterStateMachineMethodName, MethodAttributes.Private, StateMachine.Module.ImportReference(StandardTypes.Void));
+                StateMachine.Methods.Add(afterMethod);
                 afterMethod.Mark(WellKnownTypes.DebuggerHiddenAttribute);
                 afterMethod.Body.Instead(pc => pc.Return());
 
@@ -55,7 +55,7 @@ namespace AspectInjector.Core.Advice.Weavers.Processes
                         i.Next != null && i.Next.OpCode == OpCodes.Ret &&
                         (i.OpCode == OpCodes.Ldc_I4_0 || ((i.OpCode == OpCodes.Ldc_I4 || i.OpCode == OpCodes.Ldc_I4_S) && (int)i.Operand == 0)),
                     il =>
-                        il.ThisOrStatic().Call(afterMethod.MakeReference(_stateMachine.MakeSelfReference())));
+                        il.ThisOrStatic().Call(afterMethod.MakeReference(StateMachine.MakeSelfReference())));
             }
 
             return afterMethod;
@@ -69,15 +69,15 @@ namespace AspectInjector.Core.Advice.Weavers.Processes
 
         protected override Cut LoadReturnTypeArgument(Cut pc, AdviceArgument parameter)
         {
-            return pc.TypeOf(_stateMachine.Interfaces.First(i => i.InterfaceType.Name.StartsWith("IEnumerable`1")).InterfaceType);
+            return pc.TypeOf(StateMachine.Interfaces.First(i => i.InterfaceType.Name.StartsWith("IEnumerable`1")).InterfaceType);
         }
 
         protected override void InsertStateMachineCall(PointCut code)
         {
-            var stateMachineCtors = _stateMachine.Methods.Where(m => m.IsConstructor).ToArray();
+            var stateMachineCtors = StateMachine.Methods.Where(m => m.IsConstructor).ToArray();
 
             foreach (var ctor in stateMachineCtors)
-                _method.Body.OnCall(ctor.MakeReference(_stateMachineRef), cut => cut.Dup().Here(code));
+                _method.Body.OnCall(ctor.MakeReference(StateMachineRef), cut => cut.Dup().Here(code));
         }
     }
 }

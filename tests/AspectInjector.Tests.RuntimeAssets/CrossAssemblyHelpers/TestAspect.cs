@@ -10,9 +10,6 @@ namespace AspectInjector.Tests.RuntimeAssets.CrossAssemblyHelpers
     public class TestAspect : Attribute
     {
         [Advice(Kind.Before)]
-        public void Before()
-        {
-            Console.WriteLine("Before");
-        }
+        public void Before() => Console.WriteLine("Before");
     }
 }

@@ -53,7 +53,7 @@ namespace AspectInjector.Analyzer.Refactorings
             var newClass = @class.AddMembers(advice.Method);
 
             root = root.ReplaceNode(@class, newClass);
-            root = root.WithUpdatedUsings(advice.Usings);
+            root = root.WithUpdatedUsing(advice.Usings);
 
             return context.Document.WithSyntaxRoot(root);
         }

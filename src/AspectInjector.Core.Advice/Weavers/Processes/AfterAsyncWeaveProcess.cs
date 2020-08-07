@@ -24,7 +24,7 @@ namespace AspectInjector.Core.Advice.Weavers.Processes
         {
             SetStateMachine(GetStateMachine());
 
-            var builderField = _stateMachine.Fields.First(f => f.Name == "<>t__builder");
+            var builderField = StateMachine.Fields.First(f => f.Name == "<>t__builder");
             _builder = builderField.FieldType;
             _asyncResult = (_builder as IGenericInstance)?.GenericArguments.FirstOrDefault();
         }
@@ -42,16 +42,16 @@ namespace AspectInjector.Core.Advice.Weavers.Processes
 
         protected override MethodDefinition FindOrCreateAfterStateMachineMethod()
         {
-            var afterMethod = _stateMachine.Methods.FirstOrDefault(m => m.Name == Constants.AfterStateMachineMethodName);
+            var afterMethod = StateMachine.Methods.FirstOrDefault(m => m.Name == Constants.AfterStateMachineMethodName);
 
             if (afterMethod == null)
             {
-                var moveNext = _stateMachine.Methods.First(m => m.Name == "MoveNext");
+                var moveNext = StateMachine.Methods.First(m => m.Name == "MoveNext");
 
-                afterMethod = new MethodDefinition(Constants.AfterStateMachineMethodName, MethodAttributes.Private, _stateMachine.Module.ImportReference(StandardTypes.Void));
-                afterMethod.Parameters.Add(new ParameterDefinition(_stateMachine.Module.ImportReference(StandardTypes.Object)));
+                afterMethod = new MethodDefinition(Constants.AfterStateMachineMethodName, MethodAttributes.Private, StateMachine.Module.ImportReference(StandardTypes.Void));
+                afterMethod.Parameters.Add(new ParameterDefinition(StateMachine.Module.ImportReference(StandardTypes.Object)));
 
-                _stateMachine.Methods.Add(afterMethod);
+                StateMachine.Methods.Add(afterMethod);
 
                 afterMethod.Mark(WellKnownTypes.DebuggerHiddenAttribute);
                 afterMethod.Body.Instead(pc => pc.Return());
@@ -80,7 +80,7 @@ namespace AspectInjector.Core.Advice.Weavers.Processes
                         loadArg = new PointCut(args => args.Load(resvar).Cast(resvar.VariableType, StandardTypes.Object));
                     }
 
-                    il = il.ThisOrStatic().Call(afterMethod.MakeReference(_stateMachine.MakeSelfReference()), loadArg);
+                    il = il.ThisOrStatic().Call(afterMethod.MakeReference(StateMachine.MakeSelfReference()), loadArg);
 
                     if (_asyncResult != null)
                         il = il.Load(resvar);
@@ -106,7 +106,7 @@ namespace AspectInjector.Core.Advice.Weavers.Processes
         {
             var method = _builder.Resolve().Methods.First(m => m.Name == "Start").MakeReference(_builder);
 
-            var v = _method.Body.Variables.First(vr => vr.VariableType.Resolve().Match(_stateMachine));
+            var v = _method.Body.Variables.First(vr => vr.VariableType.Resolve().Match(StateMachine));
             var loadVar = v.VariableType.IsValueType ? (PointCut)(c => c.LoadRef(v)) : c => c.Load(v);
 
             _method.Body.OnCall(method, cut => cut.Prev().Prev().Prev().Here(loadVar).Here(code));
